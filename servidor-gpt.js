@@ -8,9 +8,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
-
+app.get('/preguntar', (req, res) => {
+  res.send('✅ El endpoint /preguntar está activo, pero solo acepta solicitudes POST.');
+});
 app.post('/preguntar', async (req, res) => {
-  const { pregunta } = req.body;
+  const pregunta = req.body.pregunta;
+  // lógica para conectarte al GPT
+});
+
   if (!pregunta) return res.status(400).json({ error: 'Falta el campo pregunta' });
 
   let browser;
