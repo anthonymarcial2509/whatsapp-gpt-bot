@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
   "start": "node servidor-gpt.js"
-    "servidor": "node servidor-gpt.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
