@@ -34,7 +34,7 @@ function start(client) {
 }
 
 async function enviarPreguntaAGPT(pregunta) {
-  const res = await fetch('http://localhost:3000/preguntar', {
+  const res = await fetch('https://whatsapp-gpt-bot-qsii.onrender.com/preguntar', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ pregunta })
