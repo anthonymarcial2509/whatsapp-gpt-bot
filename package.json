@@ -4,7 +4,7 @@
   "description": "Bot de WhatsApp que responde con un GPT personalizado usando Puppeteer",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+  "start": "node servidor-gpt.js"
     "servidor": "node servidor-gpt.js"
   },
   "dependencies": {
