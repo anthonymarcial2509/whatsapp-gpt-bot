@@ -1,69 +1,61 @@
-// 📦 servidor-gpt.js
 const express = require('express');
 const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
 const puppeteer = require('puppeteer');
-require('dotenv').config();
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
+
+// Ruta GET para probar si el endpoint está activo
 app.get('/preguntar', (req, res) => {
   res.send('✅ El endpoint /preguntar está activo, pero solo acepta solicitudes POST.');
 });
+
+// Ruta POST que recibe la pregunta desde el cliente
 app.post('/preguntar', async (req, res) => {
   const pregunta = req.body.pregunta;
-  // lógica para conectarte al GPT
-});
-
   if (!pregunta) return res.status(400).json({ error: 'Falta el campo pregunta' });
 
-  let browser;
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    const page = await browser.newPage();
-
-    // Establecer cookies
-    await page.setCookie({
-      name: '__Secure-next-auth.session-token',
-      value: process.env.GPT_SESSION_TOKEN,
-      domain: '.chatgpt.com',
-      path: '/',
-      httpOnly: true,
-      secure: true
-    });
-
-    console.log('🌐 Navegando a tu GPT personalizado...');
-    await page.goto(process.env.GPT_CHAT_URL, { waitUntil: 'networkidle2', timeout: 60000 });
-
-    await page.waitForSelector('textarea', { timeout: 30000 });
-    await page.type('textarea', pregunta);
-    await page.keyboard.press('Enter');
-
-    console.log('⌛ Esperando respuesta del GPT...');
-    await page.waitForSelector('[data-message-author-role="assistant"]', { timeout: 60000 });
-
-    const respuesta = await page.evaluate(() => {
-      const elementos = document.querySelectorAll('[data-message-author-role="assistant"]');
-      return elementos[elementos.length - 1]?.innerText || 'Sin respuesta';
-    });
-
-    console.log('✅ GPT respondió');
-    await browser.close();
+    const respuesta = await obtenerRespuestaDesdeGPT(pregunta);
     res.json({ respuesta });
-
-  } catch (err) {
-    console.error('❌ Error al usar el GPT personalizado:', err.message);
-    if (browser) await browser.close();
-    res.status(500).json({ error: 'Error al obtener respuesta del GPT' });
+  } catch (error) {
+    console.error('❌ Error al contactar con GPT:', error);
+    res.status(500).json({ error: 'Error al contactar con el modelo GPT' });
   }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor intermedio escuchando en http://0.0.0.0:${PORT}`);
-});
+// Lógica simulada para conectarse al GPT personalizado
+async function obtenerRespuestaDesdeGPT(pregunta) {
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
 
+  await page.goto(process.env.GPT_CHAT_URL, { waitUntil: 'networkidle2' });
+
+  await page.evaluate((msg) => {
+    const input = document.querySelector('textarea');
+    input.value = msg;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const button = document.querySelector('button[type="submit"]');
+    button.click();
+  }, pregunta);
+
+  await page.waitForTimeout(8000); // esperar respuesta
+
+  const respuesta = await page.evaluate(() => {
+    const respuestas = Array.from(document.querySelectorAll('[data-message-author-role="assistant"]'));
+    return respuestas.pop()?.innerText || 'Sin respuesta';
+  });
+
+  await browser.close();
+  return respuesta;
+}
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor escuchando en http://0.0.0.0:${PORT}`);
+});
