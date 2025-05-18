@@ -58,6 +58,7 @@ app.post('/preguntar', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor intermedio corriendo en http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor intermedio escuchando en http://0.0.0.0:${PORT}`);
 });
+
